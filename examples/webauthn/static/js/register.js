@@ -6,7 +6,6 @@ const registration_flow = () => {
     console.log(`The challenge is ${challenge}`);
     console.log(`The user id is ${user_id}`);
 
-    const cose_alg_ECDSA_w_SHA256 = -7;
 
     let createCredentialOptions = {
         publicKey: {
@@ -32,7 +31,7 @@ const registration_flow = () => {
 
             pubKeyCredParams: [{
                 type: "public-key",
-                alg: cose_alg_ECDSA_w_SHA256,
+                alg: -7,
             },
             {
                 type: "public-key",
@@ -54,14 +53,14 @@ const registration_flow = () => {
 
 
     let promise = navigator.credentials.create(createCredentialOptions);
-    promise.then( (res) => {
-      //console.log(res);
-      //console.log(typeof(res));
-      //console.log(res.response);
+    promise.then( (pubKeyCred) => {
+      //console.log(res.name);
+
+      console.log(pubKeyCred.constructor.name);
 
       let data = {};
-      data['id'] = res.id;
-      data['rawId'] = btoa(res.rawId);
+      data['id'] = pubKeyCred.id;
+      data['rawId'] = btoa(pubKeyCred.rawId);
       data['response'] = {};
 
       // Decoding the attestationObject is useless for transmitting across the network,
@@ -69,22 +68,19 @@ const registration_flow = () => {
       let decoder = new TextDecoder('utf-8');
 
       // Decoding the CBOR is for debugging only:
-      const decodedAttestationObject = CBOR.decode(res.response.attestationObject);
-      console.log(`Decoded attestationObject: ${decodedAttestationObject}`);
+      // const decodedAttestationObject = CBOR.decode(res.response.attestationObject);
+      // console.log(`Decoded attestationObject: ${decodedAttestationObject}`);
 
+      data['response']['attestationObject'] = btoa(String.fromCharCode(...new Uint8Array(pubKeyCred.response.attestationObject)));
 
-      data['response']['attestationObject'] = btoa(String.fromCharCode(...new Uint8Array(res.response.attestationObject)));
-
-      const clientDataJSON = decoder.decode(res.response.clientDataJSON);
+      const clientDataJSON = decoder.decode(pubKeyCred.response.clientDataJSON);
       console.log(`decoded ClientDataJSON: ${clientDataJSON}`);
-      console.log(`ClientDataJSON: ${res.response.clientDataJSON}`);
-      //const chal = res.response.clientDataJSON['challenge'];
-      //console.log(res.response.clientDataJSON['challenge']);
+
 
       // 'clientDataJSON' in the PubKeyCredential is a binary array, not JSON!
       // Might as well fix that here:
-      data['response']['clientDataJSON'] =  JSON.parse(decoder.decode(res.response.clientDataJSON));
-      data['type'] = res.type;
+      data['response']['clientDataJSON'] =  JSON.parse(decoder.decode(pubKeyCred.response.clientDataJSON));
+      data['type'] = pubKeyCred.type;
 
       // Send data to relying party's servers
       let xhr = new XMLHttpRequest();
