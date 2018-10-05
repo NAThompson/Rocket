@@ -17,6 +17,7 @@ extern crate serde_cbor;
 use rocket::response::Redirect;
 use rocket_contrib::Json;
 use rocket_contrib::{static_files::StaticFiles, Template};
+use rocket::http::{Cookie, Cookies};
 
 use rand::distributions::Alphanumeric;
 use rand::{thread_rng, Rng};
@@ -64,7 +65,7 @@ struct PublicKeyCredential {
 }
 
 #[get("/")]
-fn index() -> Template {
+fn index(mut cookies: Cookies) -> Template {
     let challenge = thread_rng()
         .sample_iter(&Alphanumeric)
         .take(64)
@@ -77,6 +78,8 @@ fn index() -> Template {
         .sample_iter(&Alphanumeric)
         .take(64)
         .collect::<String>();
+
+    cookies.add_private(Cookie::new("challenge", challenge.clone()));
     let context = RegistrationContext {
         challenge: challenge,
         user_handle: user_handle,
@@ -86,7 +89,7 @@ fn index() -> Template {
 
 
 #[post("/register", format = "json", data = "<pubkeycred>")]
-fn register_new_credential(pubkeycred: Json<PublicKeyCredential>) -> Result<Redirect, String> {
+fn register_new_credential(mut cookies: Cookies, pubkeycred: Json<PublicKeyCredential>) -> Result<Redirect, String> {
 
     // We will go through the flow described here:
     // https://www.w3.org/TR/webauthn/#registering-a-new-credential
@@ -105,8 +108,18 @@ fn register_new_credential(pubkeycred: Json<PublicKeyCredential>) -> Result<Redi
 
     // 4. Verify that the value of C.challenge matches the challenge that was sent to the authenticator in the create() call.
 
-    let challenge = &pubkeycred.response.client_data_json.challenge;
-    println!("Challenge: {}", challenge);
+    let returned_challenge = &pubkeycred.response.client_data_json.challenge;
+    let server_challenge = &cookies.get_private("challenge").unwrap();
+    let server_challenge = server_challenge.value();
+
+    // We no longer need the challenge cookie:
+    cookies.remove_private(Cookie::named("challenge"));
+    if returned_challenge != server_challenge {
+        println!("Server challenge  : {}", server_challenge);
+        println!("Returned challenge: {}", returned_challenge);
+        return Err("The server and returned challenge do not match!".to_string())
+    }
+
 
 
     // 5. Verify that the value of C.origin matches the Relying Party's origin.

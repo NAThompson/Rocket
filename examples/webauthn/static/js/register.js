@@ -54,20 +54,15 @@ const registration_flow = () => {
 
     let promise = navigator.credentials.create(createCredentialOptions);
     promise.then( (pubKeyCred) => {
-      //console.log(res.name);
-
-      console.log(pubKeyCred.constructor.name);
 
       let data = {};
       data['id'] = pubKeyCred.id;
       data['rawId'] = btoa(pubKeyCred.rawId);
       data['response'] = {};
 
-      // Decoding the attestationObject is useless for transmitting across the network,
-      // but very useful for examining the payload which will be delivered to the server.
       let decoder = new TextDecoder('utf-8');
 
-      // Decoding the CBOR is for debugging only:
+      // Decoding the attestationObject is for debugging only:
       // const decodedAttestationObject = CBOR.decode(res.response.attestationObject);
       // console.log(`Decoded attestationObject: ${decodedAttestationObject}`);
 
