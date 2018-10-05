@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Web Authentication Demo</title>
+    <style>
+    body {
+      background-color: black;
+      color: white;
+    }
+    </style>
+  </head>
+  <body>
+    {% block content %}{% endblock content %}
+  </body>
+</html>

@@ -1,0 +1,14 @@
+{% extends "base" %}
+
+{% block content %}
+<div>
+    <script src="/js/cbor.js"></script>
+    <script src="/js/register.js"></script>
+    <div>
+        <button id="register" type="submit"
+                data-challenge="{{ challenge }}"
+                data-user_id="{{ user_handle }}"
+                onclick="registration_flow()">Register</button>
+    </div>
+</div>
+{% endblock content %}
