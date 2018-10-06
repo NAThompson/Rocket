@@ -42,15 +42,17 @@ const registration_flow = () => {
         }
     };
 
-
-    for (let i = 0; i < challenge.len; i++) {
+    for (let i = 0; i < challenge.length; i++) {
         createCredentialOptions.publicKey.challenge[i] = challenge.charCodeAt(i);
     }
 
-    for (let i = 0; i < user_id.len; ++i) {
+    for (let i = 0; i < user_id.length; ++i) {
         createCredentialOptions.publicKey.user.id[i] = user_id.charCodeAt(i);
     }
 
+
+    console.log("createCredentialOptions");
+    console.log(createCredentialOptions);
 
     let promise = navigator.credentials.create(createCredentialOptions);
     promise.then( (pubKeyCred) => {
