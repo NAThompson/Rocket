@@ -27,7 +27,7 @@ const registration_flow = () => {
 
             attestation: 'direct',
 
-            challenge: new ArrayBuffer(64),
+            challenge: new Uint8Array(64),
 
             pubKeyCredParams: [{
                 type: "public-key",
@@ -65,18 +65,25 @@ const registration_flow = () => {
       let decoder = new TextDecoder('utf-8');
 
       // Decoding the attestationObject is for debugging only:
-      // const decodedAttestationObject = CBOR.decode(res.response.attestationObject);
-      // console.log(`Decoded attestationObject: ${decodedAttestationObject}`);
+      /*const decodedAttestationObject = CBOR.decode(pubKeyCred.response.attestationObject);
+      console.log(`Decoded attestationObject:`);
+      console.log(decodedAttestationObject);
+      const x5c = decodedAttestationObject.attStmt.x5c[0];
+      console.log(x5c);
+      console.log(btoa(x5c));
+
+      console.log(String.fromCharCode(...new Uint8Array(x5c)));*/
 
       data['response']['attestationObject'] = btoa(String.fromCharCode(...new Uint8Array(pubKeyCred.response.attestationObject)));
 
-      const clientDataJSON = decoder.decode(pubKeyCred.response.clientDataJSON);
-      console.log(`decoded ClientDataJSON: ${clientDataJSON}`);
-
-
       // 'clientDataJSON' in the PubKeyCredential is a binary array, not JSON!
-      // Might as well fix that here:
-      data['response']['clientDataJSON'] =  JSON.parse(decoder.decode(pubKeyCred.response.clientDataJSON));
+      // If we wish to debug this structure client-side, we can do so with the following code:
+      // const clientDataJSON = JSON.parse(decoder.decode(pubKeyCred.response.clientDataJSON));
+      // console.log(`decoded ClientDataJSON:`);
+      // console.log(clientDataJSON);
+
+
+      data['response']['clientDataJSON'] = btoa(String.fromCharCode(...new Uint8Array(pubKeyCred.response.clientDataJSON)));
       data['type'] = pubKeyCred.type;
 
       // Send data to relying party's servers
